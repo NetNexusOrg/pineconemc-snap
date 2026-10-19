@@ -1,0 +1,18 @@
+# snapcraft build artifacts
+*.snap
+*.snap.xdelta*
+*.snap.rev*
+parts/
+stage/
+prime/
+*.build
+*.build-info
+snap/.snapcraft/
+.snapcraft/
+
+# remote-build logs downloaded next to the .snap
+snapcraft-*.txt
+
+# editor/OS noise
+*.swp
+.DS_Store

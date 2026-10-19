@@ -1,0 +1,107 @@
+name: pineconemc
+title: PineconeMC
+base: core24
+version: "11.1.1"
+summary: Unofficial snap of PineconeMC, a Minecraft launcher with Ely.by accounts
+description: |
+  PineconeMC (ElyPrismLauncher) is a custom Minecraft launcher, forked from
+  Prism Launcher, adding Ely.by account support.
+
+  It allows you to manage multiple isolated Minecraft instances, each with
+  their own mods, resource packs, worlds, and settings. Java runtimes are
+  bundled, and additional ones can be downloaded on demand.
+
+  This snap is an unofficial, community packaging of PineconeMC. All credit
+  for the application goes to the PineconeMC/ElyPrismLauncher developers and
+  to the Prism Launcher project it is derived from; the launcher is built
+  unmodified from the upstream release tag.
+license: GPL-3.0-only
+website: https://pineconemc.ru
+source-code: https://github.com/ElyPrismLauncher/Launcher
+contact: https://github.com/NetNexusOrg/pineconemc-snap
+issues: https://github.com/NetNexusOrg/pineconemc-snap/issues
+grade: stable
+confinement: strict
+platforms:
+  amd64:
+
+apps:
+  pineconemc:
+    extensions: [kde-neon-6]
+    command: usr/bin/elyprismlauncher
+    common-id: io.github.elyprismlauncher.ElyPrismLauncher
+    desktop: usr/share/applications/io.github.elyprismlauncher.ElyPrismLauncher.desktop
+    plugs:
+      - home
+      - joystick
+      - audio-record
+      - screen-inhibit-control
+    environment:
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu
+      # GNOME/mutter does not draw server-side decorations, so the game window
+      # (SDL3 on native Wayland) has to decorate itself through libdecor.
+      # Point libdecor at the plugins staged in the snap.
+      LIBDECOR_PLUGIN_DIR: $SNAP/usr/lib/x86_64-linux-gnu/libdecor/plugins-1
+
+parts:
+  pineconemc:
+    plugin: cmake
+    source: https://github.com/ElyPrismLauncher/Launcher.git
+    source-tag: "11.1.1"
+    cmake-generator: Ninja
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_TESTING=OFF
+      - -DLauncher_BUILD_PLATFORM=snap
+      - -DLauncher_QT_VERSION_MAJOR=6
+      - -DLauncher_ENABLE_JAVA_DOWNLOADER=ON
+      # libglfw3 ships libglfw.so.3; the unversioned libglfw.so only exists in
+      # libglfw3-dev, so point the launcher (and its "Use native GLFW" option)
+      # at the versioned soname. GL itself comes from the gpu-2404 content snap.
+      - -DLauncher_GLFW_LIBRARY_NAME=libglfw.so.3
+    build-packages:
+      - cmake
+      - ninja-build
+      - extra-cmake-modules
+      - pkg-config
+      - scdoc
+      - cmark
+      - libcmark-dev
+      - gamemode-dev
+      - libarchive-dev
+      - libqrencode-dev
+      - libtomlplusplus-dev
+      - libgl1-mesa-dev
+      - libxkbcommon-dev
+      - zlib1g-dev
+      - openjdk-17-jdk
+    stage-packages:
+      # Java 8 (<= 1.16.x), 17 (1.17 - 1.20.4) and 21 (>= 1.20.5) cover every
+      # Minecraft version offline; newer ones are fetched by the downloader.
+      - openjdk-8-jre
+      - openjdk-17-jre
+      - openjdk-21-jre
+      - libglfw3
+      # Client-side window decorations for the game window: Minecraft renders
+      # through SDL3 on native Wayland, where the compositor does not decorate
+      # windows, and SDL3 loads libdecor to do it itself. libdecor picks the
+      # plugin with the highest priority, which is the GTK one (it follows the
+      # GTK/GNOME theme), keeping the cairo plugin as its fallback.
+      - libdecor-0-0
+      - libdecor-0-plugin-1-cairo
+      - libdecor-0-plugin-1-gtk
+      - libtomlplusplus3t64
+      - libcmark0.30.2
+      - libqrencode4
+      - libarchive13t64
+      - gamemode
+      - pciutils
+      - x11-xserver-utils
+    override-pull: |
+      craftctl default
+      git submodule update --init --recursive
+      # The desktop file gets a bare Icon=<AppID>; make it an absolute path
+      # inside the snap so that snapcraft can resolve it.
+      sed -i 's|Icon=@Launcher_AppID@|Icon=/usr/share/icons/hicolor/scalable/apps/io.github.elyprismlauncher.ElyPrismLauncher.svg|' \
+        program_info/io.github.elyprismlauncher.ElyPrismLauncher.desktop.in
