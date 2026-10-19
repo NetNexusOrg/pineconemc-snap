@@ -1,6 +1,7 @@
 # PineconeMC snap
 
-Snap packaging for [ElyPrismLauncher/Launcher](https://github.com/ElyPrismLauncher/Launcher)
+Unofficial snap packaging for
+[ElyPrismLauncher/Launcher](https://github.com/ElyPrismLauncher/Launcher)
 (branded as **PineconeMC**).
 
 The snap builds the launcher from source at a fixed upstream tag.
