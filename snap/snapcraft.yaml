@@ -42,6 +42,13 @@ apps:
       # (SDL3 on native Wayland) has to decorate itself through libdecor.
       # Point libdecor at the plugins staged in the snap.
       LIBDECOR_PLUGIN_DIR: $SNAP/usr/lib/x86_64-linux-gnu/libdecor/plugins-1
+      # The snap has no dconf database of its own, so GTK3 -- which draws the
+      # game window decorations through libdecor's GTK plugin -- would otherwise
+      # come up in the light Adwaita theme. Force the dark variant.
+      GTK_THEME: Adwaita:dark
+      # Let Qt consult the desktop portal, so the launcher's "System" colour
+      # scheme follows the desktop instead of defaulting to light.
+      QT_QPA_PLATFORMTHEME: xdgdesktopportal
 
 parts:
   pineconemc:

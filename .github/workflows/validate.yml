@@ -1,0 +1,31 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapcraft:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Parse snapcraft.yaml
+        run: python3 -c "import yaml; yaml.safe_load(open('snap/snapcraft.yaml'))"
+
+      - name: Install snapcraft
+        run: sudo snap install snapcraft --classic
+
+      - name: Expand the extensions
+        run: snapcraft expand-extensions > "$RUNNER_TEMP/expanded.yaml"
+
+      - name: Check the expanded project
+        run: |
+          for expect in 'grade: stable' 'kde-neon-6' 'openjdk-17-jre' 'libdecor-0-plugin-1-gtk'; do
+            grep -q "$expect" "$RUNNER_TEMP/expanded.yaml" || { echo "missing: $expect"; exit 1; }
+          done
+          echo "the expanded project looks sane"

@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    # The release job needs the SNAPCRAFT_STORE_CREDENTIALS secret, created with:
+    #   snapcraft export-login --snaps pineconemc -
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check that the tag matches source-tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          packaged=$(python3 -c "import yaml; print(yaml.safe_load(open('snap/snapcraft.yaml'))['parts']['pineconemc']['source-tag'])")
+          if [ "$tag" != "$packaged" ]; then
+            echo "tag $tag does not match source-tag $packaged"
+            exit 1
+          fi
+
+      # Builds the snap in the runner. If the action asks for LXD, add a step:
+      #   sudo snap install lxd && sudo lxd init --auto
+      - name: Build the snap
+        id: build
+        uses: snapcore/action-build@v1
+
+      - name: Attach the snap to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${{ steps.build.outputs.snap }}" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "${{ steps.build.outputs.snap }}" \
+              --title "PineconeMC $GITHUB_REF_NAME" \
+              --notes "Snap package built from upstream tag ${GITHUB_REF_NAME#v}."
+          fi
+
+      # Always to edge: promoting to stable is a deliberate, manual step, so an
+      # automatic build can never reach users before it is validated.
+      - name: Upload to the store
+        uses: snapcore/action-publish@v1
+        with:
+          store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          snap: ${{ steps.build.outputs.snap }}
+          release: edge

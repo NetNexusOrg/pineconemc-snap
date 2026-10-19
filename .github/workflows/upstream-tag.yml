@@ -1,0 +1,46 @@
+name: Upstream tag
+
+on:
+  schedule:
+    - cron: '17 6 * * *'   # every day at 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compare the packaged tag with the latest upstream tag
+        id: check
+        run: |
+          packaged=$(python3 -c "import yaml; print(yaml.safe_load(open('snap/snapcraft.yaml'))['parts']['pineconemc']['source-tag'])")
+          latest=$(git ls-remote --tags --refs https://github.com/ElyPrismLauncher/Launcher.git \
+                   | awk -F/ '{print $NF}' | sort -V | tail -n1)
+          echo "packaged=$packaged" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest"     >> "$GITHUB_OUTPUT"
+          if [ "$packaged" = "$latest" ]; then
+            echo "outdated=false" >> "$GITHUB_OUTPUT"
+            echo "packaged tag $packaged is the latest upstream release"
+          else
+            echo "outdated=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::upstream $latest is newer than the packaged $packaged"
+          fi
+
+      - name: Open an issue once
+        if: steps.check.outputs.outdated == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LATEST: ${{ steps.check.outputs.latest }}
+          PACKAGED: ${{ steps.check.outputs.packaged }}
+        run: |
+          if [ "$(gh issue list --state open --search "Upstream $LATEST in:title" --json number --jq 'length')" != "0" ]; then
+            echo "an issue for $LATEST already exists"
+            exit 0
+          fi
+          body=$(printf 'The snap is built from upstream tag `%s`, but `%s` is the latest upstream release.\n\n- [ ] bump `version` and `source-tag` in `snap/snapcraft.yaml`\n- [ ] test the new build\n- [ ] push the tag `v%s` so it is built and uploaded to `edge`\n- [ ] promote to `stable` once validated\n\nUpstream: <https://github.com/ElyPrismLauncher/Launcher/releases/tag/%s>\n' "$PACKAGED" "$LATEST" "$LATEST" "$LATEST")
+          gh issue create --title "Upstream $LATEST is out" --body "$body"
