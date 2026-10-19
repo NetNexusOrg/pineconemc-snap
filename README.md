@@ -1,9 +1,10 @@
 # PineconeMC snap
 
+[![Get it from the Snap Store](https://snapcraft.io/pineconemc/badge.svg)](https://snapcraft.io/pineconemc)
+
 Unofficial snap packaging for
 [ElyPrismLauncher/Launcher](https://github.com/ElyPrismLauncher/Launcher)
-(branded as **PineconeMC**), published on the Snap Store as **`pineconemc`**:
-<https://snapcraft.io/pineconemc>.
+(branded as **PineconeMC**), published on the Snap Store as **`pineconemc`**.
 
 The snap builds the launcher unmodified from a fixed upstream tag.
 
@@ -17,6 +18,21 @@ The snap builds the launcher unmodified from a fixed upstream tag.
 | Confinement | `strict` |
 | License | `GPL-3.0-only` |
 | Snap packaging repo | <https://github.com/NetNexusOrg/pineconemc-snap> |
+
+## Installing
+
+```bash
+sudo snap install pineconemc
+```
+
+Or open the store page and press **Install**:
+<https://snapcraft.io/pineconemc>
+
+Everything the launcher needs is bundled in the snap (Qt 6, the Java runtimes,
+the graphics stack), and updates are applied automatically.
+
+After installing, **PineconeMC** appears in the application menu; it can also be
+started from a terminal with `pineconemc`.
 
 Java runtimes are bundled (Java 8, 17 and 21, detected automatically) and
 further ones can be downloaded on demand. Everything the launcher keeps —
