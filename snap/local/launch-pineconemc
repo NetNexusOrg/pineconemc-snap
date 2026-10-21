@@ -52,12 +52,4 @@ if [ -n "${GTK_THEME:-}" ]; then
     export GTK_THEME
 fi
 
-# The app environment in snapcraft.yaml points at the x86_64 multiarch
-# directory; on arm64 the staged libraries and libdecor plugins live in
-# aarch64-linux-gnu instead.
-if [ "${SNAP_ARCH:-amd64}" != "amd64" ]; then
-    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/usr/lib/aarch64-linux-gnu"
-    export LIBDECOR_PLUGIN_DIR="$SNAP/usr/lib/aarch64-linux-gnu/libdecor/plugins-1"
-fi
-
 exec "$SNAP/usr/bin/elyprismlauncher" "$@"

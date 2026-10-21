@@ -24,7 +24,6 @@ grade: stable
 confinement: strict
 platforms:
   amd64:
-  arm64:
 
 apps:
   pineconemc:
@@ -42,8 +41,6 @@ apps:
       - audio-record
       - screen-inhibit-control
     environment:
-      # amd64 paths; bin/launch-pineconemc overrides these on arm64, where the
-      # multiarch directory is aarch64-linux-gnu.
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu
       # GNOME/mutter does not draw server-side decorations, so the game window
       # (SDL3 on native Wayland) has to decorate itself through libdecor.
