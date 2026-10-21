@@ -45,9 +45,10 @@ jobs:
 
       # Always to edge: promoting to stable is a deliberate, manual step, so an
       # automatic build can never reach users before it is validated.
+      #
+      # Uploaded with the CLI rather than snapcore/action-publish, which still
+      # calls the removed "snapcraft login --with".
       - name: Upload to the store
-        uses: snapcore/action-publish@v1
-        with:
-          store_login: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-          snap: ${{ steps.build.outputs.snap }}
-          release: edge
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: snapcraft upload --release=edge "${{ steps.build.outputs.snap }}"
