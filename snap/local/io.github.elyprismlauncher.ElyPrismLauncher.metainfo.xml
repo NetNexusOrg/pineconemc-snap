@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Replaces the metainfo file installed by upstream, which still carries the
+  Prism Launcher name and branding that the fork never rebranded.
+-->
+<component type="desktop">
+  <id>io.github.elyprismlauncher.ElyPrismLauncher</id>
+  <name>PineconeMC</name>
+  <summary>Discover, manage, and play Minecraft instances</summary>
+  <developer id="io.github.elyprismlauncher">
+    <name>PineconeMC contributors</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <description>
+    <p>PineconeMC is a custom Minecraft launcher, forked from Prism Launcher, that adds Ely.by account support.</p>
+    <p>It manages multiple isolated Minecraft instances, each with their own mods, resource packs, worlds and settings, and can install mods and modpacks directly from the launcher.</p>
+  </description>
+  <launchable type="desktop-id">io.github.elyprismlauncher.ElyPrismLauncher.desktop</launchable>
+  <url type="homepage">https://pineconemc.ru</url>
+  <content_rating type="oars-1.1"/>
+</component>

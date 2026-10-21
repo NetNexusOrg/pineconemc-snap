@@ -71,6 +71,11 @@ parts:
       craftctl default
       install -Dm755 "$CRAFT_PROJECT_DIR/snap/local/launch-pineconemc" \
         "$CRAFT_PART_INSTALL/bin/launch-pineconemc"
+      # Upstream's metainfo still says "Prism Launcher"; ship an accurate one
+      # instead so software centres show the right name and summary.
+      install -Dm644 \
+        "$CRAFT_PROJECT_DIR/snap/local/io.github.elyprismlauncher.ElyPrismLauncher.metainfo.xml" \
+        "$CRAFT_PART_INSTALL/usr/share/metainfo/io.github.elyprismlauncher.ElyPrismLauncher.metainfo.xml"
     build-packages:
       - cmake
       - ninja-build
@@ -88,11 +93,14 @@ parts:
       - zlib1g-dev
       - openjdk-17-jdk
     stage-packages:
-      # Java 8 (<= 1.16.x), 17 (1.17 - 1.20.4) and 21 (>= 1.20.5) cover every
-      # Minecraft version offline; newer ones are fetched by the downloader.
-      - openjdk-8-jre
+      # Java 17 (1.17 - 1.20.4) and 21 (>= 1.20.5) cover current versions
+      # offline; Java 8 (<= 1.16.x) and newer ones are fetched on demand by
+      # the downloader, which keeps the snap about 100 MB smaller.
       - openjdk-17-jre
       - openjdk-21-jre
+      # Minecraft's narrator (text-to-speech) loads libflite from the system
+      # on Linux; LD_LIBRARY_PATH exposes the staged copy to the game.
+      - libflite1
       - libglfw3
       # Client-side window decorations for the game window: Minecraft renders
       # through SDL3 on native Wayland, where the compositor does not decorate
