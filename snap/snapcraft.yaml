@@ -28,7 +28,11 @@ platforms:
 apps:
   pineconemc:
     extensions: [kde-neon-6]
-    command: usr/bin/elyprismlauncher
+    # Runs through a wrapper: libdecor's GTK plugin cannot see the host's GTK
+    # settings from inside the snap, so the wrapper sets GTK_THEME from the
+    # theme picked in the launcher (or from the desktop colour scheme when
+    # "System" is selected).
+    command: bin/launch-pineconemc
     common-id: io.github.elyprismlauncher.ElyPrismLauncher
     desktop: usr/share/applications/io.github.elyprismlauncher.ElyPrismLauncher.desktop
     plugs:
@@ -42,10 +46,6 @@ apps:
       # (SDL3 on native Wayland) has to decorate itself through libdecor.
       # Point libdecor at the plugins staged in the snap.
       LIBDECOR_PLUGIN_DIR: $SNAP/usr/lib/x86_64-linux-gnu/libdecor/plugins-1
-      # The snap has no dconf database of its own, so GTK3 -- which draws the
-      # game window decorations through libdecor's GTK plugin -- would otherwise
-      # come up in the light Adwaita theme. Force the dark variant.
-      GTK_THEME: Adwaita:dark
       # Let Qt consult the desktop portal, so the launcher's "System" colour
       # scheme follows the desktop instead of defaulting to light.
       QT_QPA_PLATFORMTHEME: xdgdesktopportal
@@ -67,6 +67,10 @@ parts:
       # libglfw3-dev, so point the launcher (and its "Use native GLFW" option)
       # at the versioned soname. GL itself comes from the gpu-2404 content snap.
       - -DLauncher_GLFW_LIBRARY_NAME=libglfw.so.3
+    override-build: |
+      craftctl default
+      install -Dm755 "$CRAFT_PROJECT_DIR/snap/local/launch-pineconemc" \
+        "$CRAFT_PART_INSTALL/bin/launch-pineconemc"
     build-packages:
       - cmake
       - ninja-build

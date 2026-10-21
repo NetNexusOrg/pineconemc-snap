@@ -1,0 +1,55 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# Launcher wrapper that keeps the game window's title bar in sync with the
+# application theme selected in the launcher.
+#
+# Minecraft creates its window through SDL3 on native Wayland, where the
+# compositor draws no decorations; SDL3 delegates them to libdecor, whose GTK
+# plugin paints the title bar with GTK's own theme. Inside a snap, GTK cannot
+# see the host's GSettings/dconf, so without help it always falls back to the
+# light Adwaita theme. Read the launcher setting from its config and, for
+# "System", ask the XDG desktop portal for the desktop's colour scheme.
+
+set -u
+
+theme=system
+config="${SNAP_USER_COMMON:-}/elyprismlauncher.cfg"
+if [ -r "$config" ]; then
+    theme=$(sed -n 's/^ApplicationTheme=//p' "$config" | tail -n 1 | tr -d '\r')
+fi
+
+case "$theme" in
+    dark)
+        GTK_THEME="${GTK_THEME:-Adwaita:dark}"
+        ;;
+    bright)
+        # GTK's default, light Adwaita, is the right match.
+        ;;
+    *)
+        # "system", or a custom theme whose palette cannot be mapped: follow
+        # the desktop colour scheme (0 = no preference, 1 = prefer dark,
+        # 2 = prefer light).
+        if [ -x "$SNAP/kf6/usr/bin/gdbus" ]; then
+            gdbus="$SNAP/kf6/usr/bin/gdbus"
+        else
+            gdbus=$(command -v gdbus 2>/dev/null) || gdbus=
+        fi
+        if [ -n "$gdbus" ]; then
+            scheme=$("$gdbus" call --session \
+                --dest org.freedesktop.portal.Desktop \
+                --object-path /org/freedesktop/portal/desktop \
+                --method org.freedesktop.portal.Settings.Read \
+                org.freedesktop.appearance color-scheme 2>/dev/null) || scheme=
+            case "$scheme" in
+                *"uint32 1"*) GTK_THEME="${GTK_THEME:-Adwaita:dark}" ;;
+            esac
+        fi
+        ;;
+esac
+
+if [ -n "${GTK_THEME:-}" ]; then
+    export GTK_THEME
+fi
+
+exec "$SNAP/usr/bin/elyprismlauncher" "$@"
