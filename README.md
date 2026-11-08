@@ -13,7 +13,7 @@ The snap builds the launcher unmodified from a fixed upstream tag.
 | Snap name | `pineconemc` |
 | Snap Store | <https://snapcraft.io/pineconemc> |
 | Upstream source | <https://github.com/ElyPrismLauncher/Launcher> |
-| Version | `11.1.1` |
+| Version | `11.1.2` |
 | Architectures | `amd64` |
 | Confinement | `strict` |
 | License | `GPL-3.0-only` |
